@@ -1,6 +1,25 @@
 #! /usr/bin/python3
 
-import wave, math
+"""SmallMusicPlayer
+
+SmallMusicPlayer is available under the MIT License (MIT). See LICENSE.
+
+Usage:
+	SMP 
+	SMP -f INPUTFILE -t OUTPUTFILE
+	SMP -s INPUTSTR -t OUTPUTFILE
+
+Options:
+	-f INPUTFILE	The input file.
+	-t OUTPUTFILE	The output file.
+	-s INPUTFILE	From an input str.
+	-p		Play the sound with vlc.
+	-h		Show this help.
+"""
+
+import wave, math, random, os, time
+
+from docopt import docopt
 
 NOTES={
 	"Do":131,
@@ -105,6 +124,13 @@ class Partition(list):
 				sound.writeframes(val)
 		sound.close()
 
+	def play(self):
+		sound_filename = 'tmp_{}.wav'.format(random.randint(0, 1000))
+		self.save(filename=sound_filename)
+
+		print("Running VLC.")
+
+		os.system("vlc {0} && rm {0}".format(sound_filename))
 
 
 
@@ -153,6 +179,8 @@ class Parser:
 		return self.partition
 
 if __name__ == '__main__':
+	args = docopt(__doc__)
 	part = Partition()
-	print(Parser(part, 'Si2 Do3 Do3# --  forte croche Si Do2 - medium Re3 Do3# Do3').parse())
+	print("Bytecode:\n" + str(Parser(part, 'Si2 Do3 Do3# --  forte croche Si Do2 - medium Re3 Do3# Do3').parse()))
+	part.play()
 	part.save()
