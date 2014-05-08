@@ -2,20 +2,20 @@
 
 """SmallMusicPlayer
 
-SmallMusicPlayer is available under the MIT License (MIT). See LICENSE.
+SmallMusicPlayer is available under the MIT License. See LICENSE.
 
 Usage:
 	SMP 
-	SMP -f INPUTFILE -t OUTPUTFILE
-	SMP -s INPUTSTR -t OUTPUTFILE
-
-Options:
-	-f INPUTFILE	The input file.
-	-t OUTPUTFILE	The output file.
-	-s INPUTFILE	From an input str.
-	-p		Play the sound with vlc.
-	-h		Show this help.
+	SMP -f INPUTFILE (-t OUTPUTFILE | -p)
+	SMP -s INPUTSTR (-t OUTPUTFILE | -p)
 """
+#Options:
+#	-f INPUTFILE	The input file.
+#	-t OUTPUTFILE	The output file.
+#	-s INPUTFILE	From an input str.
+#	-p		Play the sound with vlc.
+#	-h		Show this help.
+#"""
 
 import wave, math, random, os, time
 
@@ -180,7 +180,19 @@ class Parser:
 
 if __name__ == '__main__':
 	args = docopt(__doc__)
+
 	part = Partition()
-	print("Bytecode:\n" + str(Parser(part, 'Si2 Do3 Do3# --  forte croche Si Do2 - medium Re3 Do3# Do3').parse()))
-	part.play()
-	part.save()
+	input_str = ""
+
+	if args['-f']:
+		with open(args['INPUTFILE'], '-r') as in_file:
+			input_str = in_file.read()
+	elif args['-s']:
+		input_str = args['INPUTSTR']
+
+	Parser(part, input_str).parse()
+
+	if args['-t']:
+		part.save(filename=args['OUTPUTFILE'])
+	elif args['-p']:
+		part.play()
