@@ -61,15 +61,17 @@ NOTES={
 	"Silence":0,
 }
 #temps en millisecondes
+BMP = 180
 DUREE={
-	"croche":250,
-	"noire":500,
-	"blanche":1000,
+	"croche":int(500/(BMP/60)),
+	"noire":int(1000/(BMP/60)),
+	"blanche":int(2000/(BMP/60)),
 }
+
 NUANCES={
-	"piano":0.3,
-	"medium":0.6,
-	"forte":1,
+	"piano":0.15,
+	"medium":0.3,
+	"forte":0.6,
 }
 
 class Note:
@@ -86,9 +88,9 @@ class Note:
 
 silence = lambda duree: Note(NOTES["Silence"], duree)
 SILENCES = {
-	'-': silence(DUREE['croche']),
-	'--': silence(DUREE['noire']),
-	'---': silence(DUREE['blanche']),
+	'-': lambda :silence(DUREE['croche']),
+	'--': lambda:silence(DUREE['noire']),
+	'---': lambda:silence(DUREE['blanche']),
 }
 
 class Partition(list):
@@ -103,7 +105,7 @@ class Partition(list):
 		duration = float()
 		for n in self:
 			duration += n.tuple()[1]
-		duration = float(duration/1000)
+		duration = float(duration)/1000.0
 		return duration
 
 	def save(self, filename='tmp.wav'):
@@ -158,6 +160,8 @@ class Parser:
 				current_word = ''
 			elif c != ' ':
 				current_word += c
+		self.is_allowed_instr(current_word)
+		instr_list.append(current_word)
 		return instr_list
 
 
@@ -185,7 +189,7 @@ if __name__ == '__main__':
 	input_str = ""
 
 	if args['-f']:
-		with open(args['INPUTFILE'], '-r') as in_file:
+		with open(args['INPUTFILE'], 'r') as in_file:
 			input_str = in_file.read()
 	elif args['-s']:
 		input_str = args['INPUTSTR']
