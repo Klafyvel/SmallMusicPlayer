@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 
+import wave, math
+
 NOTES={
 	"Do":131,
 	"Do#":139,
@@ -25,6 +27,18 @@ NOTES={
 	"La2":440,
 	"La2#":466,
 	"Si2":494,
+	"Do3":523,
+	"Do3#":554,
+	"Re3":587,
+	"Re3#":622,
+	"Mi3":659,
+	"Fa3":698,
+	"Fa3#":740,
+	"Sol3":784,
+	"Sol3#":830,
+	"La3":880,
+	"La3#":932,
+	"Si3":988,
 	"Silence":0,
 }
 #temps en millisecondes
@@ -64,6 +78,35 @@ class Partition(list):
 		for idx, n in enumerate(self):
 			s += '{}:\t{}\n'.format(idx,n) 
 		return s
+
+	def length(self):
+		"""Returns the duration of the partition in seconds."""
+		duration = float()
+		for n in self:
+			duration += n.tuple()[1]
+		duration = float(duration/1000)
+		return duration
+
+	def save(self, filename='tmp.wav'):
+		sound = wave.open(filename, 'w')
+		canal_nb = 1
+		octet_nb = 1
+		fech = 44100
+		ech_nb = int(self.length() * fech)
+		params = (canal_nb, octet_nb, fech, ech_nb, 'NONE', 'not compressed')
+		sound.setparams(params)
+
+		for n in self:
+			t = n.tuple()
+			amplitude = 127.5*t[2]
+			n_dur = int(float(t[1])/1000 *fech)
+			for i in range(0, n_dur):
+				val = wave.struct.pack('B', int(128 + amplitude*math.sin(2.0*math.pi*t[0]*i/fech)))
+				sound.writeframes(val)
+		sound.close()
+
+
+
 
 
 class ParseError(Exception):
@@ -111,4 +154,5 @@ class Parser:
 
 if __name__ == '__main__':
 	part = Partition()
-	print(Parser(part, 'Si Do2 Do2# --  forte croche Si Do2').parse())
+	print(Parser(part, 'Si2 Do3 Do3# --  forte croche Si Do2 - medium Re3 Do3# Do3').parse())
+	part.save()
