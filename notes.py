@@ -9,13 +9,6 @@ Usage:
 	SMP -f INPUTFILE (-t OUTPUTFILE | -p)
 	SMP -s INPUTSTR (-t OUTPUTFILE | -p)
 """
-#Options:
-#	-f INPUTFILE	The input file.
-#	-t OUTPUTFILE	The output file.
-#	-s INPUTFILE	From an input str.
-#	-p		Play the sound with vlc.
-#	-h		Show this help.
-#"""
 
 import wave, math, random, os, time
 
@@ -60,12 +53,10 @@ NOTES={
 	"Si3":988,
 	"Silence":0,
 }
-#temps en millisecondes
-BMP = 180
 DUREE={
-	"croche":int(500/(BMP/60)),
-	"noire":int(1000/(BMP/60)),
-	"blanche":int(2000/(BMP/60)),
+	"croche":500,
+	"noire":1000,
+	"blanche":2000,
 }
 
 NUANCES={
@@ -92,6 +83,11 @@ SILENCES = {
 	'--': lambda:silence(DUREE['noire']),
 	'---': lambda:silence(DUREE['blanche']),
 }
+
+OTHER_OP = {
+	"bpmSet": lambda parser, val: Parser.set_bpm(parser, val),
+}
+
 
 class Partition(list):
 	def __str__(self):
@@ -134,9 +130,6 @@ class Partition(list):
 
 		os.system("vlc {0} && rm {0}".format(sound_filename))
 
-
-
-
 class ParseError(Exception):
 	pass
 
@@ -144,9 +137,20 @@ class Parser:
 	def __init__(self, partition, input_str):
 		self.partition = partition
 		self.input_str = input_str
+		self.bpm = 180
+
+	def set_bpm(self, val):
+		self.bpm = int(val)
 
 	def is_allowed_instr(self, word):
-		if not word in NOTES and not word in DUREE and not word in NUANCES and not word in SILENCES:
+		allowed = False
+		allowed = allowed or word in NOTES 
+		allowed = allowed or word in DUREE 
+		allowed = allowed or word in NUANCES 
+		allowed = allowed or word in SILENCES
+		allowed = allowed or word in OTHER_OP
+		allowed = allowed or isinstance(int(word), int)
+		if not allowed:
 			raise ParseError("'{}' is not an allowed word".format(word))
 		return True
 
@@ -166,13 +170,23 @@ class Parser:
 
 
 	def parse(self):
-		current_duree = DUREE['noire']
+		current_duree = int(DUREE['noire']/(self.bpm/60))
 		current_nuance = NUANCES['medium']
 
 		instr = self.get_instr_list()
+		operating_arg = False
+		operation = ''
+
 		for i in instr:
-			if i in DUREE:
-				current_duree = DUREE[i]
+			if operating_arg:
+				OTHER_OP[operation](self, i)
+				operation = ''
+				operating_arg = False
+			elif i in OTHER_OP:
+				operating_arg = True
+				operation = i
+			elif i in DUREE:
+				current_duree = int(DUREE[i]/(self.bpm/60))
 			elif i in NUANCES:
 				current_nuance = NUANCES[i]
 			elif i in SILENCES:
