@@ -4,8 +4,7 @@
 
 SmallMusicPlayer is available under the MIT License. See LICENSE.
 
-Usage:
-	SMP 
+Usage: 
 	SMP -f INPUTFILE (-t OUTPUTFILE | -p)
 	SMP -s INPUTSTR (-t OUTPUTFILE | -p)
 """
@@ -149,7 +148,10 @@ class Parser:
 		allowed = allowed or word in NUANCES 
 		allowed = allowed or word in SILENCES
 		allowed = allowed or word in OTHER_OP
-		allowed = allowed or isinstance(int(word), int)
+		try:
+			allowed = allowed or isinstance(int(word), int)
+		except:
+			pass
 		if not allowed:
 			raise ParseError("'{}' is not an allowed word".format(word))
 		return True
@@ -164,8 +166,9 @@ class Parser:
 				current_word = ''
 			elif c != ' ':
 				current_word += c
-		self.is_allowed_instr(current_word)
-		instr_list.append(current_word)
+		if not current_word == '': 
+			self.is_allowed_instr(current_word)
+			instr_list.append(current_word)
 		return instr_list
 
 
