@@ -73,7 +73,6 @@ class Parser:
 	def __init__(self, partition, input_str):
 		self.partition = partition
 		self.input_str = input_str
-		self.current_note = silence
 
 	def is_allowed_instr(self, word):
 		if not word in NOTES and not word in DUREE and not word in NUANCES and not word in SILENCES:
@@ -94,7 +93,21 @@ class Parser:
 
 
 	def parse(self):
-		return str(self.get_instr_list())
+		current_duree = DUREE['noire']
+		current_nuance = NUANCES['medium']
+
+		instr = self.get_instr_list()
+		for i in instr:
+			if i in DUREE:
+				current_duree = DUREE[i]
+			elif i in NUANCES:
+				current_nuance = NUANCES[i]
+			elif i in SILENCES:
+				self.partition.append(silence(current_duree))
+			elif i in NOTES:
+				self.partition.append(Note(NOTES[i], current_duree, current_nuance))
+
+		return self.partition
 
 if __name__ == '__main__':
 	part = Partition()
