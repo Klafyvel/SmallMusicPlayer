@@ -13,6 +13,7 @@ import wave, math, random, os, time
 
 from docopt import docopt
 
+# Notes with Hz values
 NOTES={
 	"Do":131,
 	"Do#":139,
@@ -137,6 +138,7 @@ class Parser:
 		self.partition = partition
 		self.input_str = input_str
 		self.bpm = 180
+		self.current_line = 1
 
 	def set_bpm(self, val):
 		self.bpm = int(val)
@@ -150,10 +152,10 @@ class Parser:
 		allowed = allowed or word in OTHER_OP
 		try:
 			allowed = allowed or isinstance(int(word), int)
-		except:
+		except ValueError:
 			pass
 		if not allowed:
-			raise ParseError("'{}' is not an allowed word".format(word))
+			raise ParseError("'{}' is not an allowed word at line {}".format(word, self.current_line))
 		return True
 
 	def get_instr_list(self):
@@ -164,6 +166,7 @@ class Parser:
 				self.is_allowed_instr(current_word)
 				instr_list.append(current_word)
 				current_word = ''
+				self.current_line += 1
 			elif c != ' ':
 				current_word += c
 		if not current_word == '': 

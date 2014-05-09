@@ -88,16 +88,17 @@ class MainWindow(Frame):
 			Parser(part, str(self.input_str)).parse()
 		except ParseError as e:
 			self.parser_print(str(e))
+			return
+		else:
+			self.parser_print('Parsed !')
 
-		self.parser_print('Parsed !')
-
-		if self.var_create_output_file.get() == 1:
-			self.parser_print('Writing output...')
-			part.save(filename=self.var_output_file.get())
-		if self.var_play_sound_with_vlc.get() == 1:
-			self.parser_print('Playing output...')
-			part.play()
-		self.parser_print('Done')
+			if self.var_create_output_file.get() == 1:
+				self.parser_print('Writing output...')
+				part.save(filename=self.var_output_file.get())
+			if self.var_play_sound_with_vlc.get() == 1:
+				self.parser_print('Playing output...')
+				part.play()
+			self.parser_print('Done')
 
 
 if __name__ == '__main__':
