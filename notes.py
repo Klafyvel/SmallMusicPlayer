@@ -90,6 +90,7 @@ OTHER_OP = {
 
 
 class Partition(list):
+	saved_file = ''
 	def __str__(self):
 		s = str()
 		for idx, n in enumerate(self):
@@ -105,6 +106,7 @@ class Partition(list):
 		return duration
 
 	def save(self, filename='tmp.wav'):
+		self.saved_file = ''
 		sound = wave.open(filename, 'w')
 		canal_nb = 1
 		octet_nb = 1
@@ -121,14 +123,23 @@ class Partition(list):
 				val = wave.struct.pack('B', int(128 + amplitude*math.sin(2.0*math.pi*t[0]*i/fech)))
 				sound.writeframes(val)
 		sound.close()
+		self.saved_file = filename
 
 	def play(self):
-		sound_filename = 'tmp_{}.wav'.format(random.randint(0, 1000))
-		self.save(filename=sound_filename)
+		if self.saved_file is '':
+			sound_filename = 'tmp_{}.wav'.format(random.randint(0, 1000))
+			print('Creating temporary file: {}'.format(sound_filename))
+			self.save(filename=sound_filename)
+			self.saved_file = ''
+		else:
+			sound_filename = self.saved_file
 
 		print("Running VLC.")
-
-		os.system("vlc {0} && rm {0}".format(sound_filename))
+		if self.saved_file is '':
+			order ="vlc {0} && rm -vf {0}".format(sound_filename)
+			os.system(order)
+		else:
+			os.system("vlc {}".format(sound_filename))
 
 class ParseError(Exception):
 	pass
@@ -182,6 +193,8 @@ class Parser:
 		instr = self.get_instr_list()
 		operating_arg = False
 		operation = ''
+
+		self.partition.saved_file = ''
 
 		for i in instr:
 			if operating_arg:
